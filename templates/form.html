@@ -1,26 +1,43 @@
-<!-- templates/form.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>SDS Lookup</title>
+    <style>
+        label,
+        input {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .note {
+            font-size: 0.9em;
+            color: gray;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Search for Safety Data Sheet (SDS)</h1>
     <form id="sdsForm">
-        <label>Product Name:</label><br>
-        <input type="text" name="product_name" required><br>
+        <label>Product Name:</label>
+        <input type="text" name="product_name">
 
-        <label>Product Number:</label><br>
-        <input type="text" name="product_number" required><br>
+        <label>Product Number:</label>
+        <input type="text" name="product_number">
 
-        <label>Country:</label><br>
-        <input type="text" name="country" required><br>
+        <p class="note">* You must provide either Product Name or Product Number (or both).</p>
 
-        <label>Language:</label><br>
-        <input type="text" name="language" required><br><br>
+        <label>Country (optional):</label>
+        <input type="text" name="country">
+
+        <label>Language (optional):</label>
+        <input type="text" name="language">
 
         <button type="submit">Search</button>
     </form>
@@ -31,16 +48,23 @@
         document.getElementById('sdsForm').onsubmit = async function (e) {
             e.preventDefault();
             const form = new FormData(this);
-            const params = new URLSearchParams(form).toString();
+            const productName = form.get('product_name').trim();
+            const productNumber = form.get('product_number').trim();
 
+            if (!productName && !productNumber) {
+                document.getElementById('result').innerHTML = "<p style='color:red;'>Please enter at least a Product Name or Product Number.</p>";
+                return;
+            }
+
+            const params = new URLSearchParams(form).toString();
             const res = await fetch(`/get-sds?${params}`);
             const data = await res.json();
 
             const resultDiv = document.getElementById('result');
             if (res.ok) {
-                resultDiv.innerHTML = `<p><strong>Download your SDS:</strong> <a href=\"${data.sds_url}\" target=\"_blank\">Click Here</a></p>`;
+                resultDiv.innerHTML = `<p><strong>Download your SDS:</strong> <a href="${data.sds_url}" target="_blank">Click Here</a></p>`;
             } else {
-                resultDiv.innerHTML = `<p style=\"color:red\">${data.error}</p>`;
+                resultDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
             }
         }
     </script>
