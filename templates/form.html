@@ -1,0 +1,49 @@
+<!-- templates/form.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SDS Lookup</title>
+</head>
+
+<body>
+    <h1>Search for Safety Data Sheet (SDS)</h1>
+    <form id="sdsForm">
+        <label>Product Name:</label><br>
+        <input type="text" name="product_name" required><br>
+
+        <label>Product Number:</label><br>
+        <input type="text" name="product_number" required><br>
+
+        <label>Country:</label><br>
+        <input type="text" name="country" required><br>
+
+        <label>Language:</label><br>
+        <input type="text" name="language" required><br><br>
+
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('sdsForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const form = new FormData(this);
+            const params = new URLSearchParams(form).toString();
+
+            const res = await fetch(`/get-sds?${params}`);
+            const data = await res.json();
+
+            const resultDiv = document.getElementById('result');
+            if (res.ok) {
+                resultDiv.innerHTML = `<p><strong>Download your SDS:</strong> <a href=\"${data.sds_url}\" target=\"_blank\">Click Here</a></p>`;
+            } else {
+                resultDiv.innerHTML = `<p style=\"color:red\">${data.error}</p>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
