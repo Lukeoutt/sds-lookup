@@ -40,21 +40,40 @@ def get_sds():
     country = request.args.get('country')
     language = request.args.get('language')
 
+    if not product_name and not product_number:
+        return jsonify({'error': 'You must provide either product_name or product_number'}), 400
+
+    query = "SELECT sds_number FROM products WHERE"
+    conditions = []
+    values = []
+
+    if product_name:
+        conditions.append("product_name = ?")
+        values.append(product_name)
+    if product_number:
+        conditions.append("product_number = ?")
+        values.append(product_number)
+    if country:
+        conditions.append("country = ?")
+        values.append(country)
+    if language:
+        conditions.append("language = ?")
+        values.append(language)
+
+    query += " AND ".join(conditions)
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-
-    c.execute('''SELECT sds_number FROM products
-                 WHERE product_name=? AND product_number=? AND country=? AND language=?''',
-              (product_name, product_number, country, language))
+    c.execute(query, values)
     result = c.fetchone()
-    
+
     if not result:
+        conn.close()
         return jsonify({'error': 'No matching SDS found'}), 404
 
     sds_number = result[0]
     c.execute('SELECT file_url FROM sds_files WHERE sds_number=?', (sds_number,))
     file_result = c.fetchone()
-
     conn.close()
 
     if not file_result:
