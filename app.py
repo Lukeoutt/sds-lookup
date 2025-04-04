@@ -43,7 +43,6 @@ def get_sds():
     if not product_name and not product_number:
         return jsonify({'error': 'You must provide either product_name or product_number'}), 400
 
-    query = "SELECT sds_number FROM products WHERE"
     conditions = []
     values = []
 
@@ -60,7 +59,9 @@ def get_sds():
         conditions.append("language = ?")
         values.append(language)
 
-    query += " AND ".join(conditions)
+    query = "SELECT sds_number FROM products"
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
